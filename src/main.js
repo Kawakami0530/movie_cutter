@@ -101,6 +101,11 @@ $('thumbnail').addEventListener('loadedmetadata', () => {
 $('retry').addEventListener('click', reset);
 $('start').addEventListener('click', async () => {
   if (!selected || busy) return;
+  // Release the preview's file reader before FFmpeg reads the same Android document URI.
+  $('thumbnail').pause();
+  $('thumbnail').removeAttribute('src');
+  $('thumbnail').load();
+  if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
   busy = true;
   discardParts();
   const shareMode = document.querySelector('input[name="mode"]:checked').value === 'share';
@@ -137,5 +142,6 @@ $('start').addEventListener('click', async () => {
     document.querySelectorAll('input[name="mode"]').forEach(el => el.disabled = false);
     $('file').disabled = false;
     $('start').disabled = false;
+    if (selected && !previewUrl) { previewUrl = URL.createObjectURL(selected); $('thumbnail').src = previewUrl; }
   }
 });
