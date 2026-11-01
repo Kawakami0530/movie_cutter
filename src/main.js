@@ -21,11 +21,12 @@ function renderParts() {
 $('discard').addEventListener('click', () => { discardParts(); $('doneHint').textContent = '分割データを破棄しました。'; });
 $('share').addEventListener('click', async () => {
   const files = [...$('partsList').querySelectorAll('input:checked')].map(el => retainedParts[Number(el.value)]);
+  record(`[${new Date().toISOString()}] 共有選択: ${files.length}件, 合計=${files.reduce((n, f) => n + f.size, 0)} bytes`);
   if (!files.length) { $('shareStatus').textContent = '共有する動画を選択してください。'; return; }
-  if (!navigator.share || !navigator.canShare?.({ files })) { $('shareStatus').textContent = 'この端末では選択したファイルを共有できません。動画の数を減らすか、ダウンロード方式を利用してください。'; return; }
+  if (!navigator.share || !navigator.canShare?.({ files })) { record(`[${new Date().toISOString()}] 共有不可: navigator.share=${!!navigator.share}, canShare=${!!navigator.canShare}, count=${files.length}`); $('shareStatus').textContent = 'この端末では選択したファイルを共有できません。動画の数を減らすか、ダウンロード方式を利用してください。'; return; }
   $('share').disabled = true;
-  try { await navigator.share({ files }); $('shareStatus').textContent = '共有画面に渡しました。みてねでアップロード完了を確認してから「分割データを破棄」を押してください。'; }
-  catch (e) { $('shareStatus').textContent = e.name === 'AbortError' ? '共有をキャンセルしました。' : `共有できませんでした: ${e.message}`; }
+  try { record(`[${new Date().toISOString()}] Android共有開始`); await navigator.share({ files }); record(`[${new Date().toISOString()}] Android共有API完了（アップロード成功を意味しません）`); $('shareStatus').textContent = '共有画面に渡しました。みてねでアップロード完了を確認してから「分割データを破棄」を押してください。'; }
+  catch (e) { record(`[${new Date().toISOString()}] Android共有例外: ${e?.name}: ${e?.message}`); $('shareStatus').textContent = e.name === 'AbortError' ? '共有をキャンセルしました。' : `共有できませんでした: ${e.message}`; }
   finally { $('share').disabled = false; }
 });
 const record = line => { diagnosticLines.push(line); if (diagnosticLines.length > 300) diagnosticLines.shift(); };
@@ -113,7 +114,7 @@ $('start').addEventListener('click', async () => {
     $('doneCount').textContent = `${completedCount}ファイルに分割しました。`;
     $('doneHint').textContent = shareMode ? '共有する動画を選択してください。端末にはダウンロードしていません。' : '端末のダウンロード一覧を確認してください。';
     $('doneSection').hidden = false;
-    if (shareMode) renderParts();
+    if (shareMode) { record(`[${new Date().toISOString()}] 分割保持完了: ${retainedParts.length}件, 合計=${retainedParts.reduce((n, f) => n + f.size, 0)} bytes`); renderParts(); }
   } catch (error) {
     record(`[${new Date().toISOString()}] UI例外: ${error?.stack || error?.message || String(error)}`);
     $('errorSection').hidden = false;
