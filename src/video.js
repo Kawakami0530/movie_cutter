@@ -81,7 +81,7 @@ export async function splitVideo(file, onUpdate, onDiagnostic = () => {}) {
         // Stream copy: seeking is keyframe dependent; boundaries may drift/overlap.
         const code = await ffmpeg.exec([
           '-hide_banner', '-loglevel', 'error', '-ss', String(start), '-i', INPUT,
-          '-t', String(length), '-map', '0:v:0', '-map', '0:a?', '-c', 'copy',
+          '-t', String(length), '-map', '0:v:0', '-map', '0:a:0?', '-c', 'copy',
           '-avoid_negative_ts', 'make_zero',
           '-metadata', `creation_time=${metadata.utc}`,
           '-metadata', `com.apple.quicktime.creationdate=${metadata.quicktime}`,
