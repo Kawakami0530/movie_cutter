@@ -10,7 +10,7 @@ function checkExit(code, phase) {
   if (code !== 0) throw new Error(`${phase}に失敗しました（FFmpeg終了コード: ${code}）。`);
 }
 
-export async function splitVideo(file, onUpdate, onDiagnostic = () => {}) {
+export async function splitVideo(file, onUpdate, onDiagnostic = () => {}, options = {}) {
   const diagnostic = (phase, detail = '') => onDiagnostic(`[${new Date().toISOString()}] ${phase}${detail ? ': ' + detail : ''}`);
   diagnostic('開始', `name=${file.name}, size=${file.size}, type=${file.type || 'unknown'}, base=${import.meta.env.BASE_URL}, crossOriginIsolated=${self.crossOriginIsolated}`);
   if (!/\.mp4$/i.test(file.name) || (file.type && file.type !== 'video/mp4')) {
@@ -24,6 +24,8 @@ export async function splitVideo(file, onUpdate, onDiagnostic = () => {}) {
   ffmpeg.on('log', ({ message }) => { logs.push(message); if (logs.length > 250) logs.shift(); diagnostic('FFmpeg', message); });
   let loaded = false;
   let completed = 0;
+  const parts = [];
+  const shareMode = options.mode === 'share';
   try {
     onUpdate({ status: 'FFmpegを読み込み中…', percent: 0, completed, total: 0 });
     const base = new URL(`${import.meta.env.BASE_URL}ffmpeg-core/`, window.location.origin).href;
@@ -91,15 +93,21 @@ export async function splitVideo(file, onUpdate, onDiagnostic = () => {}) {
         checkExit(code, '動画分割または日時メタデータの更新');
         const bytes = await ffmpeg.readFile(temp);
         if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) throw new Error('分割動画が空です。');
-        onUpdate({ status: `${filename} のダウンロードを開始中…`, percent: Math.round(5 + 90*(i+.85)/total), completed, total });
-        await downloadBlob(bytes, filename);
+        if (shareMode) {
+          parts.push(new File([bytes], filename, { type: 'video/mp4', lastModified: date.getTime() }));
+          onUpdate({ status: `${filename} を共有用に保持しました。`, percent: Math.round(5 + 90*(i+.85)/total), completed, total });
+        } else {
+          onUpdate({ status: `${filename} のダウンロードを開始中…`, percent: Math.round(5 + 90*(i+.85)/total), completed, total });
+          await downloadBlob(bytes, filename);
+        }
       } finally {
         try { await ffmpeg.deleteFile(temp); } catch { /* file may not exist */ }
       }
       completed++;
-      onUpdate({ status: `${filename} のダウンロード開始処理を実行しました。`, percent: Math.round(5 + 90*completed/total), completed, total });
+      onUpdate({ status: shareMode ? `${filename} を保持しました。` : `${filename} のダウンロード開始処理を実行しました。`, percent: Math.round(5 + 90*completed/total), completed, total });
     }
-    onUpdate({ status: '処理完了。ダウンロード一覧を確認してください。', percent: 100, completed, total });
+    onUpdate({ status: shareMode ? '分割完了。共有する動画を選択してください。' : '処理完了。ダウンロード一覧を確認してください。', percent: 100, completed, total });
+    return parts;
   } catch (error) {
     diagnostic('例外', `${error?.name || 'Error'}: ${error?.message || String(error)}\n${error?.stack || ''}`);
     if (error instanceof RangeError || /memory|allocation|out of bounds|OOM/i.test(String(error))) {
