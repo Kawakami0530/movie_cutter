@@ -1,7 +1,7 @@
 name: Publish GitHub Pages
 on:
   push:
-    branches: [main]
+    branches: [main, feature/share-to-mitene]
   workflow_dispatch:
 permissions:
   contents: read
@@ -9,21 +9,44 @@ permissions:
   id-token: write
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout stable main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: stable
+      - name: Checkout development branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/share-to-mitene
+          path: development
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --no-audit --no-fund
-      - run: npm run build
+          cache-dependency-path: stable/package-lock.json
+      - name: Build stable site
+        working-directory: stable
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Build development site
+        working-directory: development
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build -- --base=/movie_cutter/dev/
+      - name: Assemble both sites
+        run: |
+          mkdir -p site/dev
+          cp -a stable/dist/. site/
+          cp -a development/dist/. site/dev/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
   deploy:
     environment:
       name: github-pages
