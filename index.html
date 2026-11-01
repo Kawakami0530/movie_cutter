@@ -10,16 +10,17 @@
 <input id="file" type="file" accept="video/mp4,.mp4">
 <div id="preview" class="preview" hidden><video id="thumbnail" muted playsinline preload="metadata" aria-label="選択した動画のプレビュー"></video><div class="file-info"><p id="filename" class="filename">未選択</p><p id="videoDuration" class="muted"></p></div></div>
 <p id="emptyFile" class="muted centered">動画を選択してください</p>
-<button id="start" class="primary" disabled>分割開始 <span aria-hidden="true">→</span></button>
+<div class="mode-row"><label><input type="radio" name="mode" value="share" checked> 共有する（保存しない）</label><label><input type="radio" name="mode" value="download"> ダウンロード</label></div><button id="start" class="primary" disabled>分割開始 <span aria-hidden="true">→</span></button>
 </div>
 <section id="progressSection" class="card" hidden aria-live="polite">
 <div class="section-heading"><h2>処理状況</h2><strong id="percent">0%</strong></div>
-<div class="steps" aria-label="処理ステップ"><span data-step="loading">準備中</span><span data-step="reading">読み込み中</span><span data-step="processing">処理中</span><span data-step="downloading">ダウンロード中</span><span data-step="complete">完了</span></div>
+<div class="steps" aria-label="処理ステップ"><span data-step="loading">準備中</span><span data-step="reading">読み込み中</span><span data-step="processing">処理中</span><span data-step="downloading">保存・保持中</span><span data-step="complete">完了</span></div>
 <progress id="progress" max="100" value="0"></progress>
 <p id="status" class="muted" role="status"></p><p id="count" class="count"></p>
 </section>
 <section id="errorSection" class="card error" hidden role="alert"><h2>処理を停止しました</h2><p id="errorMessage"></p><p id="errorReason" class="muted"></p><button id="retry" class="secondary">やり直す</button></section>
-<section id="doneSection" class="card success" hidden role="status"><h2>✓ 分割が完了しました</h2><p id="doneCount"></p><p>端末のダウンロード一覧を確認してください。</p></section>
-<footer><button id="copyLog" class="footer-button" type="button">診断ログをコピー</button><span id="appVersion">v0.1.7</span></footer>
+<section id="doneSection" class="card success" hidden role="status"><h2>✓ 分割が完了しました</h2><p id="doneCount"></p><p id="doneHint">端末のダウンロード一覧を確認してください。</p></section>
+<section id="shareSection" class="card" hidden><h2>共有する動画を選択</h2><p class="muted">選択した動画はブラウザのメモリ内に一時保持します。みてねへのアップロード完了は検知できません。</p><div id="partsList"></div><button id="share" class="primary" type="button">選択した動画を共有</button><p id="shareStatus" class="muted" role="status"></p><button id="discard" class="secondary" type="button">分割データを破棄</button></section>
+<footer><button id="copyLog" class="footer-button" type="button">診断ログをコピー</button><span id="appVersion">v0.1.8-dev</span></footer>
 <textarea id="diagnosticLog" readonly hidden aria-label="診断ログ"></textarea>
 </main><script type="module" src="/src/main.js"></script></body></html>
