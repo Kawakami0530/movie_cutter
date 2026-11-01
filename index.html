@@ -1,46 +1,25 @@
 <!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#1d4ed8" />
-    <title>動画分割ツール</title>
-  </head>
-  <body>
-    <main class="container">
-      <h1>動画分割ツール</h1>
-      <p class="note" id="appVersion">バージョン: v0.1.5（FFmpeg ESM対応）</p>
-      <p class="lead">MP4を115秒ごとに分割します。動画は端末から外部へ送信しません。</p>
-      <label class="picker" for="file">動画を選択（MP4）</label>
-      <input id="file" type="file" accept="video/mp4,.mp4" />
-      <p id="filename" class="filename" aria-live="polite">未選択</p>
-      <button id="start" disabled>分割開始</button>
-      <section id="progressSection" hidden aria-live="polite">
-        <h2>処理状況</h2>
-        <progress id="progress" max="100" value="0"></progress>
-        <p id="percent">0%</p>
-        <p id="count">完了 0 / 0 ファイル</p>
-        <p id="status"></p>
-      </section>
-      <section id="errorSection" class="error" hidden role="alert">
-        <h2>処理を停止しました</h2>
-        <p id="errorMessage"></p>
-        <p id="errorReason"></p>
-        <button id="retry">やり直す</button>
-      </section>
-      <section id="diagnosticSection" hidden>
-        <h2>診断ログ</h2>
-        <p class="note">エラー調査用です。ファイル名などが含まれる場合があります。共有前に確認してください。</p>
-        <button id="copyLog" type="button">診断ログをコピー</button>
-        <textarea id="diagnosticLog" readonly rows="10" style="width:100%;font-size:12px;overflow-wrap:anywhere" aria-label="診断ログ"></textarea>
-      </section>
-      <section id="doneSection" hidden role="status">
-        <h2>処理が完了しました</h2>
-        <p>各ファイルのダウンロードを開始しました。端末の「ダウンロード」を確認してください。</p>
-      </section>
-      <p class="note">Chromeが複数ダウンロードの許可を求めた場合は許可してください。保存完了はWebアプリから確認できません。大容量動画ではメモリ不足になる場合があります。</p>
-    </main>
-    <script type="module" src="/src/main.js"></script>
-  </body>
-</html>
+<html lang="ja"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><meta name="theme-color" content="#f7f8fc">
+<title>動画分割ツール</title></head>
+<body><main class="container">
+<header><div class="eyebrow">VIDEO UTILITY</div><h1>動画分割ツール</h1><p class="lead">動画を115秒ごとに分割します。</p></header>
+<div class="card">
+<label class="picker" for="file"><span class="picker-icon">＋</span> 動画を選択（MP4）</label>
+<input id="file" type="file" accept="video/mp4,.mp4">
+<div id="preview" class="preview" hidden><video id="thumbnail" muted playsinline preload="metadata" aria-label="選択した動画のプレビュー"></video><div class="file-info"><p id="filename" class="filename">未選択</p><p id="videoDuration" class="muted"></p></div></div>
+<p id="emptyFile" class="muted centered">動画を選択してください</p>
+<button id="start" class="primary" disabled>分割開始 <span aria-hidden="true">→</span></button>
+</div>
+<section id="progressSection" class="card" hidden aria-live="polite">
+<div class="section-heading"><h2>処理状況</h2><strong id="percent">0%</strong></div>
+<div class="steps" aria-label="処理ステップ"><span data-step="loading">準備中</span><span data-step="reading">読み込み中</span><span data-step="processing">処理中</span><span data-step="downloading">ダウンロード中</span><span data-step="complete">完了</span></div>
+<progress id="progress" max="100" value="0"></progress>
+<p id="status" class="muted" role="status"></p><p id="count" class="count"></p>
+</section>
+<section id="errorSection" class="card error" hidden role="alert"><h2>処理を停止しました</h2><p id="errorMessage"></p><p id="errorReason" class="muted"></p><button id="retry" class="secondary">やり直す</button></section>
+<section id="doneSection" class="card success" hidden role="status"><h2>✓ 分割が完了しました</h2><p id="doneCount"></p><p>端末のダウンロード一覧を確認してください。</p></section>
+<footer><button id="copyLog" class="footer-button" type="button">診断ログをコピー</button><span id="appVersion">v0.1.5</span></footer>
+<textarea id="diagnosticLog" readonly hidden aria-label="診断ログ"></textarea>
+</main><script type="module" src="/src/main.js"></script></body></html>
