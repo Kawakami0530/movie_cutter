@@ -2,6 +2,7 @@ import './style.css';
 import { splitVideo } from './video.js';
 const $ = id => document.getElementById(id);
 let selected = null;
+let selectedBuffer = null;
 let busy = false;
 let diagnosticLines = [];
 let previewUrl = null;
@@ -77,6 +78,7 @@ function reset() {
 $('file').addEventListener('change', event => {
   if (busy) return;
   selected = event.target.files?.[0] ?? null;
+  selectedBuffer = null;
   if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
   $('thumbnail').removeAttribute('src');
   $('thumbnail').load();
@@ -84,6 +86,17 @@ $('file').addEventListener('change', event => {
   $('emptyFile').hidden = !!selected;
   $('videoDuration').textContent = '';
   if (selected) {
+    const pickedFile = selected;
+    record(`[${new Date().toISOString()}] ファイル選択: ${pickedFile.name}, size=${pickedFile.size}`);
+    // Android's content URI can expire after the picker closes. Read immediately.
+    pickedFile.arrayBuffer().then(buffer => {
+      if (selected !== pickedFile) return;
+      selectedBuffer = buffer;
+      record(`[${new Date().toISOString()}] 選択直後の読み込み成功: ${buffer.byteLength} bytes`);
+    }).catch(error => {
+      if (selected !== pickedFile) return;
+      record(`[${new Date().toISOString()}] 選択直後の読み込み失敗: ${error?.name}: ${error?.message}`);
+    });
     $('filename').textContent = `${selected.name}（${(selected.size / 1024 / 1024).toFixed(1)} MB）`;
     previewUrl = URL.createObjectURL(selected);
     $('thumbnail').src = previewUrl;
@@ -127,7 +140,7 @@ $('start').addEventListener('click', async () => {
       $('status').textContent = status;
       const phase = percent === 100 ? 'complete' : /ダウンロード/.test(status) ? 'downloading' : /分割中/.test(status) ? 'processing' : /読み込み中/.test(status) ? 'reading' : 'loading';
       setStep(phase);
-    }, record, { mode: shareMode ? 'share' : 'download' });
+    }, record, { mode: shareMode ? 'share' : 'download', inputBuffer: selectedBuffer });
     $('doneCount').textContent = `${completedCount}ファイルに分割しました。`;
     $('doneHint').textContent = shareMode ? '共有する動画を選択してください。端末にはダウンロードしていません。' : '端末のダウンロード一覧を確認してください。';
     $('doneSection').hidden = false;
