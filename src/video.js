@@ -52,7 +52,7 @@ export async function splitVideo(file, onUpdate, onDiagnostic = () => {}, option
     onUpdate({ status: '元動画を読み込み中…', percent: 2, completed, total: 0 });
     // ffmpeg.wasm requires an in-memory copy of the entire input. This is the main memory risk.
     let inputBytes;
-    try { inputBytes = new Uint8Array(await file.arrayBuffer()); }
+    try { inputBytes = new Uint8Array(options.inputBuffer || await file.arrayBuffer()); diagnostic('入力取得方式', options.inputBuffer ? '選択直後に確保したバッファ' : '分割開始時に読み込み'); }
     catch (e) {
       diagnostic('入力読み込み失敗', `name=${e?.name}, message=${e?.message}, fileSize=${file.size}, lastModified=${file.lastModified}`);
       throw new Error('動画ファイルを読み込めませんでした。Androidのファイル選択画面で同じ動画を選び直してください。クラウド上の動画の場合は端末に保存してから選択してください。詳細: ' + (e?.message || String(e)));
