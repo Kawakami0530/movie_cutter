@@ -28,6 +28,12 @@
         <p id="errorReason"></p>
         <button id="retry">やり直す</button>
       </section>
+      <section id="diagnosticSection" hidden>
+        <h2>診断ログ</h2>
+        <p class="note">エラー調査用です。ファイル名などが含まれる場合があります。共有前に確認してください。</p>
+        <button id="copyLog" type="button">診断ログをコピー</button>
+        <textarea id="diagnosticLog" readonly rows="10" style="width:100%;font-size:12px;overflow-wrap:anywhere" aria-label="診断ログ"></textarea>
+      </section>
       <section id="doneSection" hidden role="status">
         <h2>処理が完了しました</h2>
         <p>各ファイルのダウンロードを開始しました。端末の「ダウンロード」を確認してください。</p>
