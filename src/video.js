@@ -26,8 +26,8 @@ export async function splitVideo(file, onUpdate, onDiagnostic = () => {}) {
   let completed = 0;
   try {
     onUpdate({ status: 'FFmpegを読み込み中…', percent: 0, completed, total: 0 });
-    const base = `${import.meta.env.BASE_URL}ffmpeg-core/`;
-    diagnostic('FFmpegロード開始', `${new URL(base + 'ffmpeg-core.js', location.href).href} / ${new URL(base + 'ffmpeg-core.wasm', location.href).href}`);
+    const base = new URL(`${import.meta.env.BASE_URL}ffmpeg-core/`, window.location.origin).href;
+    diagnostic('FFmpegロード開始', `${base}ffmpeg-core.js / ${base}ffmpeg-core.wasm`);
     try {
       await ffmpeg.load({ coreURL: `${base}ffmpeg-core.js`, wasmURL: `${base}ffmpeg-core.wasm` });
     } catch (e) {
