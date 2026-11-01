@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-# Deploy from main only: github-pages environment may reject feature branches.
+# Deploy from main only; rebuild both stable and dev from their latest commits.
 # Both versions are always built from their respective branches on every deployment.
 permissions:
   contents: read
