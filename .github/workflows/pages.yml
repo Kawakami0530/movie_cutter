@@ -3,6 +3,7 @@ on:
   push:
     branches: [main, feature/share-to-mitene]
   workflow_dispatch:
+# Both versions are always built from their respective branches on every deployment.
 permissions:
   contents: read
   pages: write
