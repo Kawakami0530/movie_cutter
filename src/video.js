@@ -22,14 +22,29 @@ export async function splitVideo(file, onUpdate, onDiagnostic = () => {}) {
   const ffmpeg = new FFmpeg();
   const logs = [];
   ffmpeg.on('log', ({ message }) => { logs.push(message); if (logs.length > 250) logs.shift(); diagnostic('FFmpeg', message); });
+  const blobURLs = [];
   let loaded = false;
   let completed = 0;
   try {
     onUpdate({ status: 'FFmpegを読み込み中…', percent: 0, completed, total: 0 });
     const base = new URL(`${import.meta.env.BASE_URL}ffmpeg-core/`, window.location.origin).href;
     diagnostic('FFmpegロード開始', `${base}ffmpeg-core.js / ${base}ffmpeg-core.wasm`);
+    const fetchAsBlobURL = async (name, mime) => {
+      const url = base + name;
+      const response = await fetch(url);
+      diagnostic('アセット取得', `${name}: HTTP ${response.status}, Content-Type=${response.headers.get('content-type') || 'unknown'}`);
+      if (!response.ok) throw new Error(`${name} の取得に失敗しました (HTTP ${response.status})`);
+      const blob = await response.blob();
+      diagnostic('アセット取得完了', `${name}: ${blob.size} bytes`);
+      if (!blob.size) throw new Error(`${name} が空です`);
+      const blobURL = URL.createObjectURL(new Blob([blob], { type: mime }));
+      blobURLs.push(blobURL);
+      return blobURL;
+    };
     try {
-      await ffmpeg.load({ coreURL: `${base}ffmpeg-core.js`, wasmURL: `${base}ffmpeg-core.wasm` });
+      const coreURL = await fetchAsBlobURL('ffmpeg-core.js', 'text/javascript');
+      const wasmURL = await fetchAsBlobURL('ffmpeg-core.wasm', 'application/wasm');
+      await ffmpeg.load({ coreURL, wasmURL });
     } catch (e) {
       diagnostic('FFmpegロード失敗', `${e?.name || 'Error'}: ${e?.message || String(e)}\n${e?.stack || ''}`);
       throw new Error(`FFmpegの初期化に失敗しました: ${e?.message || String(e)}`);
@@ -100,5 +115,6 @@ export async function splitVideo(file, onUpdate, onDiagnostic = () => {}) {
       try { await ffmpeg.deleteFile(INPUT); } catch { /* ignore */ }
     }
     try { ffmpeg.terminate(); } catch { /* ignore */ }
+    for (const url of blobURLs) URL.revokeObjectURL(url);
   }
 }
