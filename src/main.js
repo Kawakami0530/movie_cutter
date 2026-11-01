@@ -24,9 +24,21 @@ $('share').addEventListener('click', async () => {
   record(`[${new Date().toISOString()}] 共有選択: ${files.length}件, 合計=${files.reduce((n, f) => n + f.size, 0)} bytes`);
   if (!files.length) { $('shareStatus').textContent = '共有する動画を選択してください。'; return; }
   if (!navigator.share || !navigator.canShare?.({ files })) { record(`[${new Date().toISOString()}] 共有不可: navigator.share=${!!navigator.share}, canShare=${!!navigator.canShare}, count=${files.length}`); $('shareStatus').textContent = 'この端末では選択したファイルを共有できません。動画の数を減らすか、ダウンロード方式を利用してください。'; return; }
+  const policy = document.permissionsPolicy || document.featurePolicy;
+  const policyAllowed = policy?.allowsFeature?.('web-share');
+  record(`[${new Date().toISOString()}] 共有環境: secure=${window.isSecureContext}, topLevel=${window.top === window.self}, userActivation=${navigator.userActivation?.isActive ?? 'unknown'}, webSharePolicy=${policyAllowed ?? 'unknown'}, visibility=${document.visibilityState}, ua=${navigator.userAgent}`);
+  if (policyAllowed === false) {
+    $('shareStatus').textContent = 'このページを開いているアプリが共有機能を禁止しています。URLをコピーしてAndroid版Chromeで直接開いてください。';
+    return;
+  }
   $('share').disabled = true;
   try { record(`[${new Date().toISOString()}] Android共有開始`); await navigator.share({ files }); record(`[${new Date().toISOString()}] Android共有API完了（アップロード成功を意味しません）`); $('shareStatus').textContent = '共有画面に渡しました。みてねでアップロード完了を確認してから「分割データを破棄」を押してください。'; }
-  catch (e) { record(`[${new Date().toISOString()}] Android共有例外: ${e?.name}: ${e?.message}`); $('shareStatus').textContent = e.name === 'AbortError' ? '共有をキャンセルしました。' : `共有できませんでした: ${e.message}`; }
+  catch (e) {
+    record(`[${new Date().toISOString()}] Android共有例外: ${e?.name}: ${e?.message}`);
+    $('shareStatus').textContent = e.name === 'AbortError' ? '共有をキャンセルしました。' : e.name === 'NotAllowedError'
+      ? 'ブラウザが共有を拒否しました。Android版ChromeでURLを直接開いて再試行してください。改善しない場合は診断ログを送ってください。'
+      : `共有できませんでした: ${e.message}`;
+  }
   finally { $('share').disabled = false; }
 });
 const record = line => { diagnosticLines.push(line); if (diagnosticLines.length > 300) diagnosticLines.shift(); };
