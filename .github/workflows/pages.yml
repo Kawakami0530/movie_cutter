@@ -1,8 +1,9 @@
 name: Publish GitHub Pages
 on:
   push:
-    branches: [main, feature/share-to-mitene]
+    branches: [main]
   workflow_dispatch:
+# Deploy from main only: github-pages environment may reject feature branches.
 permissions:
   contents: read
   pages: write
