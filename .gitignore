@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.DS_Store
+public/ffmpeg-core/*.js
+public/ffmpeg-core/*.wasm
